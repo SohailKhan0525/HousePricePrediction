@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 
 # Load model + scaler + columns
-model = joblib.load("best_model.pkl")
+model = joblib.load("best_model_compressed.pkl")
 scaler = joblib.load("scaler.pkl")
 columns = joblib.load("columns.pkl")
 unique_categories = joblib.load("unique_categories.pkl")
