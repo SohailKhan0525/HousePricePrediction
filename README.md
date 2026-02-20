@@ -1,29 +1,25 @@
-# 🏠 House Price Prediction (Streamlit App)
+# 🏠 House Price Prediction
 
-Interactive machine learning app to estimate house prices using a trained model and engineered features.
-
-🔗 **Live App:**  
-[House Price Prediction App](https://housepriceprediction-rqo8ykwgldxbpemwl6kvok.streamlit.app/)
+Machine learning project to estimate house prices using a trained regression model and engineered features.
 
 ---
 
-## ✅ What’s Included (File Analysis)
+## ✅ What's Included
 
-- **app.py** – Streamlit UI and prediction pipeline with input validation, one-hot encoding, and cached artifact loading.
-- **best_model.pkl** – Trained regression model.
-- **columns.pkl** – Training column order for one-hot encoded features.
-- **unique_categories.pkl** – Allowed categories for dropdown inputs.
+- **app.py** – Prediction pipeline with input validation, one-hot encoding, and artifact loading.
+- **best_model.pkl** – Trained regression model serialized with joblib.
+- **columns.pkl** – Training column order for one-hot encoded features, used to align inference inputs.
+- **unique_categories.pkl** – Allowed category values for each categorical feature.
 - **requirements.txt** – Python dependencies.
 
 ---
 
 ## ✨ Features
 
-- Clean Streamlit UI with form inputs
-- Validation for floor constraints
-- One-hot encoding aligned to training columns
-- Cached model loading for faster startup
-- Live deployment on Streamlit Cloud
+- Input validation (e.g., floor constraints)
+- One-hot encoding aligned to training columns to prevent feature mismatch
+- Derived features: Floor Ratio, Is Top Floor
+- Serialized model and column artifacts for reproducible inference
 
 ---
 
@@ -31,41 +27,44 @@ Interactive machine learning app to estimate house prices using a trained model 
 
 1. Install dependencies:
 
-	```bash
-	pip install -r requirements.txt
-	```
+```bash
+pip install -r requirements.txt
+```
 
-2. Start the app:
+2. Run the prediction script:
 
-	```bash
-	streamlit run app.py
-	```
+```bash
+python app.py
+```
 
 ---
 
 ## 🧠 Model Inputs
 
-The app uses these inputs:
+The model uses these inputs:
 
 - **Numerical:** Carpet Area, Bathrooms, Balcony, Current Floor, Total Floor
 - **Categorical:** Location, Transaction, Furnishing, Facing, Overlooking, Car Parking, Ownership
-- **Derived:** Floor Ratio, Is top floor
+- **Derived:** Floor Ratio, Is Top Floor
 
 ---
 
 ## 📌 Notes
 
-- This is a demo app; data shown is illustrative.
-- Update `unique_categories.pkl` and `columns.pkl` if you retrain the model.
+- Data shown is illustrative; this is a portfolio/learning project.
+- Retrain the model and regenerate `unique_categories.pkl` and `columns.pkl` if the dataset changes.
 
 ---
 
 ## 📚 What I Learned
 
-- Data cleaning and preprocessing
-- Exploratory data analysis (EDA)
-- Feature engineering and outlier handling
-- Model tuning and evaluation
+- **Data preprocessing:** Handling missing values, type casting, and cleaning raw housing data before modeling.
+- **Exploratory data analysis (EDA):** Identifying distributions, correlations, and outliers that informed feature decisions.
+- **Feature engineering:** Creating derived features (Floor Ratio, Is Top Floor) to capture domain-relevant signal.
+- **Categorical encoding alignment:** Using `pd.get_dummies` and `reindex` with saved column order to ensure inference inputs match training schema.
+- **Artifact serialization:** Saving and loading model, column list, and category mappings with joblib for reproducible predictions.
+- **Model evaluation:** Comparing regression metrics (MAE, RMSE, R²) across models to select the best performer.
+- **Reproducibility:** Persisting all preprocessing artifacts alongside the model so predictions can be reproduced without retraining.
 
 ---
 
