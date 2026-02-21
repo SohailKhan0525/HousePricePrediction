@@ -13,6 +13,8 @@ def load_artifacts():
 model, columns, unique_categories = load_artifacts()
 
 # ---------------- UI ----------------
+st.set_page_config(page_title="House Price Prediction", layout="centered")
+
 st.title("🏠 House Price Prediction")
 st.write("Enter property details to estimate price.")
 
@@ -39,7 +41,7 @@ if current_floor > total_floor:
 # ---------------- PREDICTION ----------------
 if st.button("Predict Price 💰"):
 
-    # EXACT column names as training data
+    # EXACT column names as used during training
     input_data = {
         "Bathroom": bathroom,
         "Balcony": balcony,
@@ -63,7 +65,14 @@ if st.button("Predict Price 💰"):
     # Align with training columns
     df_input_encoded = df_input_encoded.reindex(columns=columns, fill_value=0)
 
-    # Predict
-    prediction = model.predict(df_input_encoded)[0]
+    # Predict (model outputs price in Lakhs)
+    prediction_lakh = model.predict(df_input_encoded)[0]
 
-    st.success(f"💰 Estimated Price: ₹{prediction:,.0f}")
+    # Convert to rupees and crores
+    prediction_rupees = prediction_lakh * 100000
+    prediction_crore = prediction_lakh / 100
+
+    # ---------------- OUTPUT ----------------
+    st.success(f"💰 Estimated Price: ₹{prediction_rupees:,.0f}")
+    st.info(f"≈ ₹{prediction_lakh:,.2f} Lakhs")
+    st.info(f"≈ ₹{prediction_crore:,.2f} Crore")
