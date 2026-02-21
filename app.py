@@ -2,7 +2,10 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ---------------- LOAD MODEL + ARTIFACTS ----------------
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(page_title="House Price Prediction", layout="centered")
+
+# ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_artifacts():
     model = joblib.load("best_model.pkl")
@@ -12,20 +15,47 @@ def load_artifacts():
 
 model, columns, unique_categories = load_artifacts()
 
-# ---------------- UI ----------------
-st.set_page_config(page_title="House Price Prediction", layout="centered")
-
+# ---------------- TITLE ----------------
 st.title("🏠 House Price Prediction")
 st.write("Enter property details to estimate price.")
 
 # ---------------- INPUTS ----------------
 
-carpet_area = st.number_input("Carpet Area (sqft)", min_value=204, step=10)
-bathroom = st.number_input("Bathrooms", min_value=1, step=1)
-balcony = st.number_input("Balcony", min_value=0, step=1)
-current_floor = st.number_input("Current Floor", min_value=1, step=1)
-total_floor = st.number_input("Total Floors", min_value=1, step=1)
-bhk = st.number_input("BHK", min_value=1, step=1)
+carpet_area = st.number_input(
+    "Carpet Area (sqft)",
+    min_value=204,   # min from training data
+    step=10
+)
+
+bathroom = st.number_input(
+    "Bathrooms",
+    min_value=1,     # training data min
+    step=1
+)
+
+balcony = st.number_input(
+    "Balcony",
+    min_value=0,
+    step=1
+)
+
+current_floor = st.number_input(
+    "Current Floor",
+    min_value=1,
+    step=1
+)
+
+total_floor = st.number_input(
+    "Total Floors",
+    min_value=1,
+    step=1
+)
+
+bhk = st.number_input(
+    "BHK",
+    min_value=1,
+    step=1
+)
 
 location = st.selectbox("Location", unique_categories["location"])
 transaction = st.selectbox("Transaction", unique_categories["Transaction"])
@@ -57,11 +87,19 @@ if st.button("Predict Price 💰"):
 
     df_input = pd.DataFrame([input_data])
 
+    # One-hot encode
     df_input_encoded = pd.get_dummies(df_input)
+
+    # Align with training columns
     df_input_encoded = df_input_encoded.reindex(columns=columns, fill_value=0)
 
+    # Predict
     prediction = model.predict(df_input_encoded)[0]
 
-    st.success(f"💰 Estimated Price: ₹{prediction:,.0f}")
-    st.info(f"≈ ₹{prediction/100:.2f} Lakhs")
-    st.info(f"≈ ₹{prediction/10000:.2f} Crore")
+    # Convert to Lakhs & Crores
+    price_lakh = prediction / 100
+    price_crore = price_lakh / 100
+
+    # ---------------- OUTPUT ----------------
+    st.success(f"💰 Estimated Price: ₹{price_lakh:,.2f} Lakhs")
+    st.info(f"≈ ₹{price_crore:,.2f} Crore")
