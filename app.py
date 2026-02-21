@@ -20,10 +20,10 @@ st.write("Enter property details to estimate price.")
 
 # ---------------- INPUTS ----------------
 
-carpet_area = st.number_input("Carpet Area (sqft)", min_value=100, step=10)
-bathroom = st.number_input("Bathrooms", min_value=0, step=1)
+carpet_area = st.number_input("Carpet Area (sqft)", min_value=204, step=10)
+bathroom = st.number_input("Bathrooms", min_value=1, step=1)
 balcony = st.number_input("Balcony", min_value=0, step=1)
-current_floor = st.number_input("Current Floor", min_value=0, step=1)
+current_floor = st.number_input("Current Floor", min_value=1, step=1)
 total_floor = st.number_input("Total Floors", min_value=1, step=1)
 bhk = st.number_input("BHK", min_value=1, step=1)
 
@@ -41,7 +41,6 @@ if current_floor > total_floor:
 # ---------------- PREDICTION ----------------
 if st.button("Predict Price 💰"):
 
-    # EXACT column names as used during training
     input_data = {
         "Bathroom": bathroom,
         "Balcony": balcony,
@@ -56,23 +55,13 @@ if st.button("Predict Price 💰"):
         "Ownership": ownership
     }
 
-    # Convert to DataFrame
     df_input = pd.DataFrame([input_data])
 
-    # One-hot encode
     df_input_encoded = pd.get_dummies(df_input)
-
-    # Align with training columns
     df_input_encoded = df_input_encoded.reindex(columns=columns, fill_value=0)
 
-    # Predict (model outputs price in Lakhs)
-    prediction_lakh = model.predict(df_input_encoded)[0]
+    prediction = model.predict(df_input_encoded)[0]
 
-    # Convert to rupees and crores
-    prediction_rupees = prediction_lakh * 100000
-    prediction_crore = prediction_lakh / 100
-
-    # ---------------- OUTPUT ----------------
-    st.success(f"💰 Estimated Price: ₹{prediction_rupees:,.0f}")
-    st.info(f"≈ ₹{prediction_lakh:,.2f} Lakhs")
-    st.info(f"≈ ₹{prediction_crore:,.2f} Crore")
+    st.success(f"💰 Estimated Price: ₹{prediction:,.0f}")
+    st.info(f"≈ ₹{prediction/100:.2f} Lakhs")
+    st.info(f"≈ ₹{prediction/10000:.2f} Crore")
