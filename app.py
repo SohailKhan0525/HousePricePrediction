@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ---------------- LOAD ARTIFACTS ----------------
+# ---------------- LOAD MODEL + ARTIFACTS ----------------
 @st.cache_resource
 def load_artifacts():
     model = joblib.load("best_model.pkl")
@@ -14,7 +14,7 @@ model, columns, unique_categories = load_artifacts()
 
 # ---------------- UI ----------------
 st.title("🏠 House Price Prediction")
-st.write("Enter the details below to predict the house price.")
+st.write("Enter property details to estimate price.")
 
 # ---------------- INPUTS ----------------
 
@@ -26,39 +26,35 @@ total_floor = st.number_input("Total Floors", min_value=1, step=1)
 bhk = st.number_input("BHK", min_value=1, step=1)
 
 location = st.selectbox("Location", unique_categories["location"])
-status = st.selectbox("Status", unique_categories["Status"])
 transaction = st.selectbox("Transaction", unique_categories["Transaction"])
 furnishing = st.selectbox("Furnishing", unique_categories["Furnishing"])
 car_parking = st.selectbox("Car Parking", unique_categories["Car Parking"])
 ownership = st.selectbox("Ownership", unique_categories["Ownership"])
 
 # ---------------- VALIDATION ----------------
-
 if current_floor > total_floor:
     st.error("❌ Current Floor cannot be greater than Total Floors")
     st.stop()
 
 # ---------------- PREDICTION ----------------
-
 if st.button("Predict Price 💰"):
 
-    # Create input dictionary (MATCH TRAINING COLUMN NAMES EXACTLY)
+    # EXACT column names as training data
     input_data = {
-        "location": location,
-        "Status": status,
-        "Transaction": transaction,
-        "Furnishing": furnishing,
         "Bathroom": bathroom,
         "Balcony": balcony,
-        "Car Parking": car_parking,
-        "Ownership": ownership,
         "Carpet Area(Sqft)": carpet_area,
-        "Total_Floors": total_floor,
-        "Current_Floor": current_floor,
-        "BHK": bhk
+        "Total Floors": total_floor,
+        "Current Floor": current_floor,
+        "BHK": bhk,
+        "location": location,
+        "Transaction": transaction,
+        "Furnishing": furnishing,
+        "Car Parking": car_parking,
+        "Ownership": ownership
     }
 
-    # Convert to dataframe
+    # Convert to DataFrame
     df_input = pd.DataFrame([input_data])
 
     # One-hot encode
