@@ -1,128 +1,125 @@
 # 🏠 House Price Prediction
 
-This project predicts house prices using a machine learning pipeline developed in `housepriceprediction.ipynb` and served through a Streamlit app.
+This project is an end-to-end machine learning workflow for predicting house prices, rebuilt from the updated notebook `housepricepred.ipynb` and deployed with Streamlit.
 
 ---
 
-## 🎯 What I Built
+## 🎯 Project Summary
 
-I built an end-to-end regression workflow:
+I worked on the complete ML cycle:
 
-1. Load and inspect the raw housing dataset
-2. Clean missing values and drop low-value columns
-3. Engineer useful numerical features from text-based fields
-4. Remove outliers and keep a realistic value range
-5. Train multiple regression models
-6. Compare metrics and pick the best model
-7. Save model + metadata artifacts for app inference
+1. Load and inspect raw housing data
+2. Clean missing/invalid values
+3. Build features from text-heavy columns
+4. Normalize units and value scales
+5. Train and compare multiple regressors
+6. Save deployable model artifacts
+
+The prediction target in this notebook is **`Price(in lakhs)`**.
 
 ---
 
-## 🧪 Notebook Workflow (Based on `housepriceprediction.ipynb`)
+## 🧪 What I Did in `housepricepred.ipynb`
 
-### 1) Data loading and initial inspection
-- Imported `numpy`, `pandas`, `seaborn`, `matplotlib`
-- Loaded dataset from CSV and checked `head()`, `info()`, `describe()`, shape, duplicates, missing values
+### 1) Data loading and exploration
+- Imported `numpy`, `pandas`, `matplotlib`, `seaborn`
+- Loaded `house_prices.csv`
+- Checked data quality using `info()`, `describe()`, `isnull().sum()`, and `shape`
 
-### 2) Data cleaning and column pruning
-- Dropped columns with low utility / high missingness:
-	- `Index`, `Description`, `Amount(in rupees)`, `Society`, `Dimensions`, `overlooking`, `Plot Area`, `facing`
-- Removed rows where target was missing (`Price (in rupees)`)
-- Removed rows with missing key categoricals (`Status`, `Furnishing`, `Transaction`, `location`, `Car Parking`, `Ownership`)
-- Dropped `Super Area`
+### 2) Missing value handling and column cleanup
+- Removed high-missing / low-use columns:
+	- `Plot Area`, `Dimensions`, `Super Area`, `Car Parking`, `Society`
+- Filled key missing values with statistical imputations:
+	- `Ownership` with mode
+	- `Bathroom`, `Balcony` with median
+	- `Current Floor` and `Total Floor` with median
 
-### 3) Feature engineering from text fields
-- Converted `Carpet Area` text into structured numeric components:
-	- extracted numeric value (`area_value`)
-	- extracted unit (`sqft`, `sqm`, `sqyard`)
-	- converted to standardized `Carpet Area(Sqft)` (including sqm conversion)
-- Built quality filters:
-	- kept `Carpet Area(Sqft)` between 200 and 4000
-	- kept positive prices only
-- Created `Price Per Sqft` for analysis, then removed it from final training data
-- Cleaned floor information:
-	- parsed `Total Floors` from `Floor`
-	- created `Current Floor` with custom logic for basement / ground / numbered floors
-- Extracted `BHK` from `Title`
+### 3) Data type cleaning and standardization
+- Converted noisy bathroom and balcony values (like `> 10`) into numeric values
+- Converted these columns to integers
+- Processed floor strings into structured numeric features:
+	- `Total Floor`
+	- `Current Floor`
 
-### 4) Type fixing, imputation, and consistency
-- Converted `Bathroom` and `Balcony` to numeric
-- Filled missing values in numeric columns using median/mean where needed
-- Cleaned extreme string values like `>10` into numeric values
-- Dropped temporary/helper columns after transformation
-- Removed duplicates in final processed data
+### 4) Feature engineering
+- Extracted numeric carpet area from text and standardized into `Carpet Area(SQFT)`
+	- handled units such as sqft, sqm, and sqyard
+- Derived price target from amount text:
+	- parsed number into `amount_value`
+	- converted crore/lakh strings into unified `Price(in lakhs)`
+- Extracted `BHK` count from `Title`
 
-### 5) Outlier handling
-- Applied IQR-based filtering on `Price (in rupees)` to reduce extreme values
+### 5) Outlier filtering and dataset constraints
+- Kept realistic carpet area range: `300` to `6000` sqft
+- Kept realistic price range: `7` to `1200` lakhs
+- Removed temporary/raw columns after conversion:
+	- `Title`, `Amount(in rupees)`, `amount_value`, raw carpet intermediates
 
-### 6) Modeling and evaluation
-- Prepared features and target:
-	- `X = df.drop('Price (in rupees)')`
-	- `y = df['Price (in rupees)']`
-- Applied one-hot encoding (`pd.get_dummies`)
-- Split data into train/test (`test_size=0.2`, `random_state=42`)
+### 6) Model training and comparison
+- Prepared `X` and `y` where target = `Price(in lakhs)`
+- Applied one-hot encoding with `pd.get_dummies(drop_first=True)`
+- Train/test split: `test_size=0.2`, `random_state=42`
 - Trained and compared:
 	- `RandomForestRegressor`
 	- `GradientBoostingRegressor`
-- Evaluated with:
+	- `DecisionTreeRegressor`
+- Evaluated each using:
 	- `R²`
 	- `MAE`
 	- `RMSE`
-- Selected best model by highest R²
+- Selected best model based on highest `R²`
 
-### 7) Artifact saving for deployment
-- Saved best model: `best_model.pkl`
-- Saved encoded training columns: `columns.pkl`
-- Saved categorical options map: `unique_categories.pkl`
-
----
-
-## 📚 What I Learned (Meaningful Takeaways)
-
-### 1) Real-world data is messy
-I learned that most work happens before modeling. Columns had mixed formats, missing values, and noisy text patterns. Cleaning this properly made model training possible.
-
-### 2) Feature engineering is critical
-Converting `Carpet Area` strings to standardized square feet and extracting `BHK`, `Current Floor`, and `Total Floors` taught me how domain features can strongly improve model quality.
-
-### 3) Outlier handling changes model behavior
-Using IQR filtering on price showed me that extreme values can distort regression models. Controlled outlier removal improved stability.
-
-### 4) Categorical encoding must be reproducible
-I learned not to rely on ad-hoc encoding. Saving encoded column structure (`columns.pkl`) is essential so app-time input matches training-time schema.
-
-### 5) Model comparison beats model guessing
-Instead of picking one algorithm directly, I compared Random Forest vs Gradient Boosting with the same split and metrics. This gave an evidence-based model choice.
-
-### 6) Metrics should be read together
-R² alone is not enough. Combining R², MAE, and RMSE gave better understanding of prediction quality and error magnitude.
-
-### 7) Deployment needs more than a `.pkl` model
-I learned that model deployment also needs metadata artifacts (columns + categories). Without them, UI predictions can break or become inconsistent.
-
-### 8) Notebook-to-app transition is a separate skill
-Building the notebook taught modeling; integrating it into Streamlit taught product thinking: user inputs, validation, transformations, and safe prediction flow.
-
-### 9) Data pipeline discipline matters
-Temporary columns (`area_value`, `area_unit`, `Price Per Sqft`) are useful during engineering, but I learned to drop them cleanly before final training to avoid leakage/confusion.
-
-### 10) End-to-end ML is about reliability
-The biggest learning: a successful ML project is not just “trained model works once,” but a repeatable pipeline that can be understood, reused, and deployed.
+### 7) Model artifact export
+- Saved best model to `best_model.pkl`
+- Saved encoded feature columns to `columns.pkl`
 
 ---
 
-## 🗂️ Project Files
+## 📚 What I Learned (Expanded)
 
-- `housepriceprediction.ipynb` → Full training and experimentation workflow
-- `app.py` → Streamlit inference app
-- `best_model.pkl` → Selected trained model
-- `columns.pkl` → Encoded training feature columns
-- `unique_categories.pkl` → Dropdown category values
-- `requirements.txt` → Dependency list
+### 1) Most ML time is spent before modeling
+I learned that preprocessing is the core of real projects. The raw data had mixed formats, missing values, and text-heavy fields. Cleaning them correctly was more important than quickly fitting a model.
+
+### 2) Text-to-numeric conversion is a key practical skill
+Fields like `Carpet Area`, `Floor`, and `Amount(in rupees)` are not directly model-ready. I learned how to parse and transform these into consistent numeric variables.
+
+### 3) Unit normalization matters a lot
+Area values came in different units (`sqft`, `sqm`, `sqyard`). Converting all of them into one unit (`SQFT`) improved consistency and reduced hidden noise.
+
+### 4) Target engineering affects model stability
+Converting `Amount(in rupees)` into a clean numeric target (`Price(in lakhs)`) taught me how important a stable target representation is for regression performance.
+
+### 5) Data constraints improve robustness
+Filtering unrealistic area and price ranges helped remove extreme outliers and made the model more stable on practical values.
+
+### 6) Multiple metrics give better judgment
+I learned not to depend on only one metric. Reading `R²`, `MAE`, and `RMSE` together gave a fuller view of both fit quality and prediction error scale.
+
+### 7) Comparing models is better than guessing
+Trying Random Forest, Gradient Boosting, and Decision Tree in the same setup helped me choose the best model objectively instead of by assumption.
+
+### 8) Categorical encoding must be deployment-ready
+I learned that saving encoded column order (`columns.pkl`) is essential. Without the exact feature schema, app-time predictions can break or become inconsistent.
+
+### 9) Dropping temporary columns prevents confusion
+During feature engineering I created helper columns (like parsed area and amount values). Removing these after use keeps the final training dataset clean and reproducible.
+
+### 10) End-to-end delivery is the real milestone
+The biggest learning is that successful ML is not only training a model. It is building a full pipeline that can be understood, reused, and connected to a real app.
 
 ---
 
-## ▶️ Run the App
+## 📂 Current Files
+
+- `housepricepred.ipynb` → Updated training and preprocessing notebook
+- `app.py` → Streamlit app
+- `best_model.pkl` → Best trained model
+- `columns.pkl` → Encoded training feature schema
+- `requirements.txt` → Project dependencies
+
+---
+
+## ▶️ Run Locally
 
 ```bash
 pip install -r requirements.txt
@@ -133,4 +130,4 @@ streamlit run app.py
 
 ## 📌 Note
 
-This is a learning and portfolio project. Predictions are for educational/demo purposes.
+This is a learning/portfolio project. Predictions are for educational and demonstration use.
